@@ -77,8 +77,8 @@ class LainBot:
 
     def job(self, room):
 
-        path = "/home/turboss/Imágenes"
-
+        path = self.path
+        
         pic_list = os.listdir(path)
 
         pic_num = randint(a=0, b=len(pic_list) - 1)
