@@ -1,0 +1,6 @@
+bot:
+  host: "http://localhost:8008"
+  username: "@user:localhost"
+  password: "changeme"
+  room: "#room:localhost"
+  pics_path: "/path/to/pics"
