@@ -19,7 +19,7 @@ import yaml
 from random import randint
 
 from matrix_client.client import MatrixClient
-from matrix_client.api import MatrixRequestError
+from matrix_client.api import MatrixRequestError, MatrixHttpApi
 from requests.exceptions import MissingSchema
 
 
@@ -36,6 +36,8 @@ class LainBot:
         room_id_alias = self.config["bot"]["room"]
 
         self.path = self.config["bot"]["pics_path"]
+
+        self.api = MatrixHttpApi(base_url=host, token=self.config["bot"]["token"])
 
         self.client = MatrixClient(host)
 
@@ -68,6 +70,8 @@ class LainBot:
         room.add_listener(self.on_message)
         self.client.start_listener_thread()
 
+        self.room_id = self.api.get_room_id(self.config["bot"]["room"])
+
         schedule.every().day.at("17:10").do(self.job, room=room)
 
     @staticmethod
@@ -78,7 +82,7 @@ class LainBot:
     def job(self, room):
 
         path = self.path
-        
+
         pic_list = os.listdir(path)
 
         pic_num = randint(a=0, b=len(pic_list) - 1)
@@ -108,20 +112,29 @@ class LainBot:
 
     # Called when a message is recieved.
     def on_message(self, room, event):
-        if event["sender"] != "@lain:jauriarts.org":
-            if event['type'] == "m.room.member":
-                if event['membership'] == "join":
-                    print("{0} joined".format(event['content']['displayname']))
-            elif event['type'] == "m.room.message":
-                if event['content']['msgtype'] == "m.text":
-                    msg = event['content']['body']
-                    if msg.startswith("!"):
-                        if msg[1:] == "pic":
-                            self.job(room)
-                    print("{0}: {1}".format(event['sender'], event['content']['body']))
 
-            else:
-                print(event['type'])
+        if event["sender"] == self.config["bot"]["username"]:
+            return
+
+        power_levels = self.api.get_power_levels(room_id=self.room_id)
+
+        for key, value in power_levels.items():
+            if key == "users" and event["sender"] not in value:
+                return
+
+        if event['type'] == "m.room.member":
+            if event['membership'] == "join":
+                print("{0} joined".format(event['content']['displayname']))
+        elif event['type'] == "m.room.message":
+            if event['content']['msgtype'] == "m.text":
+                msg = event['content']['body']
+                if msg.startswith("!"):
+                    if msg[1:] == "pic":
+                        self.job(room)
+                print("{0}: {1}".format(event['sender'], event['content']['body']))
+
+        else:
+            print(event['type'])
 
 
 def main():
