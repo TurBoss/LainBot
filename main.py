@@ -19,7 +19,7 @@ import yaml
 from random import randint
 
 from matrix_client.client import MatrixClient
-from matrix_client.api import MatrixRequestError, MatrixHttpApi
+from matrix_client.api import MatrixRequestError
 from requests.exceptions import MissingSchema
 
 
@@ -114,7 +114,7 @@ class LainBot:
         if event["sender"] == self.config["bot"]["username"]:
             return
 
-        power_levels = self.api.get_power_levels(room_id=self.room_id)
+        power_levels = self.config["bot"]["owners"]
 
         for key, value in power_levels.items():
             if key == "users" and event["sender"] not in value:
