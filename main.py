@@ -116,9 +116,8 @@ class LainBot:
 
         owners = self.config["bot"]["owners"]
 
-        for name in owners:
-            if event["sender"] not in name:
-                return
+        if event["sender"] not in owners:
+            return
 
         if event['type'] == "m.room.member":
             if event['membership'] == "join":
