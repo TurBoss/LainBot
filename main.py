@@ -114,10 +114,10 @@ class LainBot:
         if event["sender"] == self.config["bot"]["username"]:
             return
 
-        power_levels = self.config["bot"]["owners"]
+        owners = self.config["bot"]["owners"]
 
-        for key, value in power_levels.items():
-            if key == "users" and event["sender"] not in value:
+        for name in owners:
+            if event["sender"] not in name:
                 return
 
         if event['type'] == "m.room.member":
