@@ -37,8 +37,6 @@ class LainBot:
 
         self.path = self.config["bot"]["pics_path"]
 
-        self.api = MatrixHttpApi(base_url=host, token=self.config["bot"]["token"])
-
         self.client = MatrixClient(host)
 
         try:
@@ -70,7 +68,7 @@ class LainBot:
         room.add_listener(self.on_message)
         self.client.start_listener_thread()
 
-        self.room_id = self.api.get_room_id(self.config["bot"]["room"])
+        self.room_id = self.config["bot"]["room_id"]
 
         schedule.every().day.at("17:10").do(self.job, room=room)
 
