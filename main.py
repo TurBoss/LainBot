@@ -16,6 +16,8 @@ import sys
 import schedule
 import yaml
 
+from time import sleep
+
 from random import randint
 
 from matrix_client.client import MatrixClient
@@ -27,8 +29,13 @@ class LainBot:
 
     def __init__(self):
 
+        self.config = None
+
         with open("config.yaml", "r") as cfg_file:
             self.config = yaml.load(cfg_file)
+
+        if self.config is None:
+            sys.exit(13)
 
         host = self.config["bot"]["host"]
         username = self.config["bot"]["username"]
@@ -40,7 +47,7 @@ class LainBot:
         self.client = MatrixClient(host)
 
         try:
-            self.client.login_with_password(username, password)
+            self.client.login(username=username, password=password, sync=True)
         except MatrixRequestError as e:
             print(e)
             if e.code == 403:
@@ -70,12 +77,13 @@ class LainBot:
 
         self.room_id = self.config["bot"]["room_id"]
 
-        schedule.every().day.at("17:10").do(self.job, room=room)
+        schedule.every().day.at("13:37").do(self.job, room=room)
 
     @staticmethod
     def start():
-        while 1:
+        while True:
             schedule.run_pending()
+            sleep(1)
 
     def job(self, room):
 
