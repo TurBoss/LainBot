@@ -27,12 +27,12 @@ from requests.exceptions import MissingSchema
 
 class LainBot:
 
-    def __init__(self):
+    def __init__(self, config_path):
 
         self.config = None
 
-        with open("config.yaml", "r") as cfg_file:
-            self.config = yaml.load(cfg_file)
+        with open(config_path, "r") as cfg_file:
+            self.config = yaml.safe_load(cfg_file)
 
         if self.config is None:
             sys.exit(13)
@@ -142,10 +142,13 @@ class LainBot:
             print(event['type'])
 
 
-def main():
-    bot = LainBot()
+def main(argv):
+
+    config_path = argv[1]
+
+    bot = LainBot(config_path)
     bot.start()
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
