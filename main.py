@@ -29,8 +29,8 @@ class LainBot:
 
     def __init__(self, config_path):
 
-        self.log.info("Initializing system.")
         self.log = logging.getLogger(__name__)
+        self.log.info("Initializing system.")
 
         self.config = None
 
