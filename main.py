@@ -28,7 +28,8 @@ import logging
 class LainBot:
 
     def __init__(self, config_path):
-        
+
+        self.log.info("Initializing system.")
         self.log = logging.getLogger(__name__)
 
         self.config = None
@@ -46,17 +47,19 @@ class LainBot:
 
         self.path = self.config["bot"]["pics_path"]
 
+        self.log.info("Start client.")
         self.client = MatrixClient(host)
 
         try:
+            self.log.info("Client login.")
             self.client.login(username=username, password=password, sync=True)
         except MatrixRequestError as e:
             self.log.debug(e)
             if e.code == 403:
-                self.log.debug("Bad username or password.")
+                self.log.info("Bad username or password.")
                 sys.exit(4)
             else:
-                self.log.debug("Check your sever details are correct.")
+                self.log.info("Check your sever details are correct.")
                 sys.exit(2)
         except MissingSchema as e:
             self.log.debug("Bad URL format.")
@@ -68,18 +71,22 @@ class LainBot:
         except MatrixRequestError as e:
             self.log.debug(e)
             if e.code == 400:
-                self.log.debug("Room ID/Alias in the wrong format")
+                self.log.info("Room ID/Alias in the wrong format")
                 sys.exit(11)
             else:
-                self.log.debug("Couldn't find room.")
+                self.log.info("Couldn't find room.")
                 sys.exit(12)
 
+        self.log.info("Start listener.")
         room.add_listener(self.on_message)
         self.client.start_listener_thread()
 
         self.room_id = self.config["bot"]["room_id"]
 
+        self.log.info("Start job.")
         schedule.every().day.at("13:37").do(self.job, room=room)
+
+        self.log.info("Initializing system complete.")
 
     @staticmethod
     def start():
@@ -121,7 +128,7 @@ class LainBot:
     # Called when a message is recieved.
     def on_message(self, room, event):
         self.log.debug(f"EVENT: {event}")
-        
+
         if event["sender"] == self.config["bot"]["username"]:
             return
 
