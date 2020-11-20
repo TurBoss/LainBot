@@ -120,7 +120,8 @@ class LainBot:
 
     # Called when a message is recieved.
     def on_message(self, room, event):
-
+        self.log.debug(f"EVENT: {event}")
+        
         if event["sender"] == self.config["bot"]["username"]:
             return
 
