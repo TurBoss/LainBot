@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-# A simple chat client for matrix.
-# This sample will allow you to connect to a room, and send/recieve messages.
-# Args: host:port username password room
+
 # Error Codes:
 # 1 - Unknown problem has occured
 # 2 - Could not find the server.
@@ -24,10 +22,14 @@ from matrix_client.client import MatrixClient
 from matrix_client.api import MatrixRequestError
 from requests.exceptions import MissingSchema
 
+import logging
+
 
 class LainBot:
 
     def __init__(self, config_path):
+        
+        self.log = logging.getLogger(__name__)
 
         self.config = None
 
@@ -49,27 +51,27 @@ class LainBot:
         try:
             self.client.login(username=username, password=password, sync=True)
         except MatrixRequestError as e:
-            print(e)
+            self.log.debug(e)
             if e.code == 403:
-                print("Bad username or password.")
+                self.log.debug("Bad username or password.")
                 sys.exit(4)
             else:
-                print("Check your sever details are correct.")
+                self.log.debug("Check your sever details are correct.")
                 sys.exit(2)
         except MissingSchema as e:
-            print("Bad URL format.")
-            print(e)
+            self.log.debug("Bad URL format.")
+            self.log.debug(e)
             sys.exit(3)
 
         try:
             room = self.client.join_room(room_id_alias)
         except MatrixRequestError as e:
-            print(e)
+            self.log.debug(e)
             if e.code == 400:
-                print("Room ID/Alias in the wrong format")
+                self.log.debug("Room ID/Alias in the wrong format")
                 sys.exit(11)
             else:
-                print("Couldn't find room.")
+                self.log.debug("Couldn't find room.")
                 sys.exit(12)
 
         room.add_listener(self.on_message)
@@ -106,11 +108,11 @@ class LainBot:
             extension = "jpeg"
 
         mine = "image/{}".format(extension)
-        print(mine)
+        self.log.debug(mine)
 
         url = self.client.upload(content=pic_bytes, content_type=mine)
 
-        print(url)
+        self.log.debug(url)
 
         room.send_image(url=url, name=name)
 
@@ -129,17 +131,17 @@ class LainBot:
 
         if event['type'] == "m.room.member":
             if event['membership'] == "join":
-                print("{0} joined".format(event['content']['displayname']))
+                self.log.debug("{0} joined".format(event['content']['displayname']))
         elif event['type'] == "m.room.message":
             if event['content']['msgtype'] == "m.text":
                 msg = event['content']['body']
                 if msg.startswith("!"):
                     if msg[1:] == "pic":
                         self.job(room)
-                print("{0}: {1}".format(event['sender'], event['content']['body']))
+                self.log.debug("{0}: {1}".format(event['sender'], event['content']['body']))
 
         else:
-            print(event['type'])
+            self.log.debug(event['type'])
 
 
 def main(argv):
