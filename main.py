@@ -210,7 +210,7 @@ class LainBot:
         #     self.log.debug(event['type'])
 
 
-def main(argv):
+async def main(argv):
 
     config_path = argv[1]
 
