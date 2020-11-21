@@ -269,7 +269,7 @@ async def main(argv):
     config_path = argv[1]
 
     bot = LainBot(config_path)
-    asyncio.run(bot.start())
+    await bot.start()
 
 
 if __name__ == '__main__':
