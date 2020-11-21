@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import asyncio
 import os
 import sys
 
@@ -52,12 +52,14 @@ class LainBot:
         self.client.add_event_callback(self.message_callback, RoomMessageText)
         self.client.add_event_callback(self.image_callback, RoomMessageImage)
 
-        self.room_id = self.config["bot"]["room_id"]
+        # self.room_id = self.config["bot"]["room_id"]
 
         # self.log.info("Start job.")
         # schedule.every().day.at("13:37").do(self.job)
 
         self.log.info("Initializing system complete.")
+
+        await self.client.sync_forever(timeout=30000) # milliseconds
 
     @staticmethod
     def start():
@@ -217,4 +219,4 @@ def main(argv):
 
 
 if __name__ == '__main__':
-    main(sys.argv)
+    asyncio.get_event_loop().run_until_complete(main(sys.argv))
