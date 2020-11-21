@@ -50,7 +50,7 @@ class LainBot:
         self.client.device_id = self.config["bot"]["device_name"]
 
         self.client.add_event_callback(self.message_callback, RoomMessageText)
-        self.client.add_event_callback(self.image_callback, RoomMessageImage)
+        # self.client.add_event_callback(self.image_callback, RoomMessageImage)
 
         # self.room_id = self.config["bot"]["room_id"]
 
