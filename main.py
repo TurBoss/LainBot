@@ -42,11 +42,11 @@ class LainBot:
 
         self.log.info("Start client.")
 
-        host = self.config["bot"]["host"]
-
+        self.homeserver = self.config["bot"]["host"]
+        self.room_id = self.config["bot"]["room_id"]
         self.log.info("Initializing client.")
-        
-        self.client = AsyncClient(host)
+
+        self.client = AsyncClient(self.homeserver)
         self.client.access_token = self.config["bot"]["token"]
         self.client.user_id = self.config["bot"]["username"]
         self.client.device_id = self.config["bot"]["device_name"]
@@ -56,10 +56,6 @@ class LainBot:
         self.client.add_event_callback(self.message_callback, RoomMessageText)
         # self.client.add_event_callback(self.image_callback, RoomMessageImage)
 
-        self.log.info("Join rooms.")
-
-        self.room_id = self.config["bot"]["room_id"]
-        self.client.join(room_id=self.room_id)
 
         # self.log.info("Start job.")
         # schedule.every().day.at("13:37").do(self.job)
@@ -67,6 +63,10 @@ class LainBot:
         self.log.info("Initializing system complete.")
 
     async def start(self):
+        self.log.info("Join rooms.")
+
+        await self.client.join(room_id=self.room_id)
+
         self.log.info("Start Sync")
         await self.client.sync_forever(timeout=30000)
 
