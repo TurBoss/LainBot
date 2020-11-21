@@ -19,10 +19,12 @@ from time import sleep
 from random import randint
 
 from matrix_client.client import MatrixClient
-from matrix_client.api import MatrixRequestError
+from matrix_client.api import MatrixRequestError, MatrixHttpApi
 from requests.exceptions import MissingSchema
 
 import logging
+
+logging.basicConfig(filename='lain.log', level=logging.DEBUG)
 
 
 class LainBot:
@@ -49,6 +51,9 @@ class LainBot:
 
         self.log.info("Start client.")
         self.client = MatrixClient(host)
+        self.matrix = MatrixHttpApi("https://jauriarts.org", token="some_token")
+
+        # response = matrix.send_message("!roomid:matrix.org", "Hello!")
 
         try:
             self.log.info("Client login.")
@@ -147,6 +152,12 @@ class LainBot:
                     if msg[1:] == "pic":
                         self.job(room)
                 self.log.debug("{0}: {1}".format(event['sender'], event['content']['body']))
+        elif event['type'] == "m.reaction":
+            if event['content']['m.relates_to']['key'] == '👍️':
+                self.log.debug(f"User {event['sender']} Key {event['content']['m.relates_to']['key']}")
+                event_id = event['content']['m.relates_to']['event_id']
+                self.log.debug(f"Event ID: {event_id}")
+
 
         else:
             self.log.debug(event['type'])
