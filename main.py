@@ -62,7 +62,7 @@ class LainBot:
         await self.client.sync_forever(timeout=30000) # milliseconds
 
     @staticmethod
-    def start():
+    async def start():
         while True:
             schedule.run_pending()
             sleep(1)
@@ -215,7 +215,7 @@ async def main(argv):
     config_path = argv[1]
 
     bot = LainBot(config_path)
-    bot.start()
+    await bot.start()
 
 
 if __name__ == '__main__':
