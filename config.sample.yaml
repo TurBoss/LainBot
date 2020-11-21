@@ -1,6 +1,11 @@
 bot:
-  host: "http://localhost:8008"
-  username: "@user:localhost"
-  password: "changeme"
-  room: "#room:localhost"
-  pics_path: "/path/to/pics"
+  host: "https://homeserver.io"
+  username: "@bot:homeserver.io"
+  password: "passwd"
+  token: "token"
+  room: "#roon:homeserver.io"
+  room_id: "!room_id:homeserver.io"
+  pics_path: "images"
+  owners:
+    - "@yo:homeserver.io"
+    - "@you:homeserver.org"
