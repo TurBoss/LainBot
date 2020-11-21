@@ -45,9 +45,9 @@ class LainBot:
         host = self.config["bot"]["host"]
 
         self.client = AsyncClient(host)
-        self.client.access_token = self.config["bot"]["token"]
-        self.client.user_id = self.config["bot"]["username"]
+        self.client.user_id = self.config["bot"]["username"] 
         self.client.device_id = self.config["bot"]["device_name"]
+        self.client.access_token = self.config["bot"]["token"]
 
         self.client.add_event_callback(self.message_callback, RoomMessageText)
         # self.client.add_event_callback(self.image_callback, RoomMessageImage)
