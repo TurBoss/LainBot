@@ -36,7 +36,7 @@ class LainBot:
 
         if self.config is None:
             self.log.error("Missing config.yaml in run arguments.")
-            sys.exit(13)
+            sys.exit(1)
 
         self.path = self.config["bot"]["pics_path"]
 
@@ -44,15 +44,22 @@ class LainBot:
 
         host = self.config["bot"]["host"]
 
+        self.log.info("Initializing client.")
+        
         self.client = AsyncClient(host)
-        self.client.user_id = self.config["bot"]["username"] 
-        self.client.device_id = self.config["bot"]["device_name"]
         self.client.access_token = self.config["bot"]["token"]
+        self.client.user_id = self.config["bot"]["username"]
+        self.client.device_id = self.config["bot"]["device_name"]
+
+        self.log.info("Register callbacks.")
 
         self.client.add_event_callback(self.message_callback, RoomMessageText)
         # self.client.add_event_callback(self.image_callback, RoomMessageImage)
 
-        # self.room_id = self.config["bot"]["room_id"]
+        self.log.info("Join rooms.")
+
+        self.room_id = self.config["bot"]["room_id"]
+        self.client.join(room_id=self.room_id)
 
         # self.log.info("Start job.")
         # schedule.every().day.at("13:37").do(self.job)
@@ -207,7 +214,6 @@ class LainBot:
 
 
 async def main(argv):
-
     config_path = argv[1]
 
     bot = LainBot(config_path)
