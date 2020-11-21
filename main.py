@@ -15,7 +15,7 @@ from time import sleep
 
 from random import randint
 
-from nio import AsyncClient, RoomMessageText, MatrixRoom, UploadResponse
+from nio import AsyncClient, RoomMessageText, MatrixRoom, UploadResponse, RoomMessageImage
 
 import logging
 
@@ -50,6 +50,7 @@ class LainBot:
         self.client.device_id = self.config["bot"]["device_name"]
 
         self.client.add_event_callback(self.message_callback, RoomMessageText)
+        self.client.add_event_callback(self.image_callback, RoomMessageImage)
 
         self.room_id = self.config["bot"]["room_id"]
 
@@ -165,6 +166,10 @@ class LainBot:
 
     async def message_callback(self, room: MatrixRoom, event: RoomMessageText) -> None:
         self.log.debug(f"Message received in room {room.display_name}\n"
+                       f"{room.user_name(event.sender)} | {event.body}")
+
+    async def image_callback(self, room: MatrixRoom, event: RoomMessageImage) -> None:
+        self.log.debug(f"Image received in room {room.display_name}\n"
                        f"{room.user_name(event.sender)} | {event.body}")
         #
         # self.log.debug(f"EVENT: {event}")
