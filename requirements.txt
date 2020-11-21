@@ -2,3 +2,4 @@ requests
 matrix-nio
 schedule
 pyyaml
+python-magic

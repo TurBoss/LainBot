@@ -2,16 +2,20 @@
 
 import os
 import sys
+
+import magic
 import schedule
 import yaml
-import magic
-import asyncio
+
+import aiofiles.os
+
+from PIL import Image
 
 from time import sleep
 
 from random import randint
 
-from nio import AsyncClient, RoomMessageText, InviteEvent, LoginResponse, MatrixRoom
+from nio import AsyncClient, RoomMessageText, MatrixRoom, UploadResponse
 
 import logging
 
@@ -46,7 +50,6 @@ class LainBot:
         self.client.device_id = self.config["bot"]["device_name"]
 
         self.client.add_event_callback(self.message_callback, RoomMessageText)
-
 
         self.room_id = self.config["bot"]["room_id"]
 
@@ -131,7 +134,7 @@ class LainBot:
                 content_type=mime_type,  # image/jpeg
                 filename=os.path.basename(image),
                 filesize=file_stat.st_size)
-        if (isinstance(resp, UploadResponse)):
+        if isinstance(resp, UploadResponse):
             print("Image was uploaded successfully to server. ")
         else:
             print(f"Failed to upload image. Failure response: {resp}")
@@ -163,41 +166,41 @@ class LainBot:
     async def message_callback(self, room: MatrixRoom, event: RoomMessageText) -> None:
         self.log.debug(f"Message received in room {room.display_name}\n"
                        f"{room.user_name(event.sender)} | {event.body}")
-
-        self.log.debug(f"EVENT: {event}")
-
-        if event["sender"] == self.config["bot"]["username"]:
-            return
-
-        owners = self.config["bot"]["owners"]
-
-        if event["sender"] not in owners:
-            return
-
-        if event['type'] == "m.room.member":
-            if event['membership'] == "join":
-                self.log.debug("{0} joined".format(event['content']['displayname']))
-        elif event['type'] == "m.room.message":
-            if event['content']['msgtype'] == "m.text":
-                msg = event['content']['body']
-                if msg.startswith("!"):
-                    if msg[1:] == "pic":
-                        self.job(room)
-                self.log.debug("{0}: {1}".format(event['sender'], event['content']['body']))
-        elif event['type'] == "m.reaction":
-            if event['content']['m.relates_to']['key'] == '👍️':
-                self.log.debug(f"User {event['sender']} Key {event['content']['m.relates_to']['key']}")
-                event_id = event['content']['m.relates_to']['event_id']
-                self.log.debug(f"Event ID: {event_id}")
-                room_id = event['room_id']
-
-                room_state = self.matrix.get_room_state(room_id=room_id)
-                event_content = room_state
-
-                # room_state = self.matrix.room(room_id=room_id, event_type="m.reaction")
-                # self.log.debug(room_state.
-        else:
-            self.log.debug(event['type'])
+        #
+        # self.log.debug(f"EVENT: {event}")
+        #
+        # if event["sender"] == self.config["bot"]["username"]:
+        #     return
+        #
+        # owners = self.config["bot"]["owners"]
+        #
+        # if event["sender"] not in owners:
+        #     return
+        #
+        # if event['type'] == "m.room.member":
+        #     if event['membership'] == "join":
+        #         self.log.debug("{0} joined".format(event['content']['displayname']))
+        # elif event['type'] == "m.room.message":
+        #     if event['content']['msgtype'] == "m.text":
+        #         msg = event['content']['body']
+        #         if msg.startswith("!"):
+        #             if msg[1:] == "pic":
+        #                 self.job(room)
+        #         self.log.debug("{0}: {1}".format(event['sender'], event['content']['body']))
+        # elif event['type'] == "m.reaction":
+        #     if event['content']['m.relates_to']['key'] == '👍️':
+        #         self.log.debug(f"User {event['sender']} Key {event['content']['m.relates_to']['key']}")
+        #         event_id = event['content']['m.relates_to']['event_id']
+        #         self.log.debug(f"Event ID: {event_id}")
+        #         room_id = event['room_id']
+        #
+        #         room_state = self.matrix.get_room_state(room_id=room_id)
+        #         event_content = room_state
+        #
+        #         # room_state = self.matrix.room(room_id=room_id, event_type="m.reaction")
+        #         # self.log.debug(room_state.
+        # else:
+        #     self.log.debug(event['type'])
 
 
 def main(argv):
