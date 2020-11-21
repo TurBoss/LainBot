@@ -59,13 +59,8 @@ class LainBot:
 
         self.log.info("Initializing system complete.")
 
-        await self.client.sync_forever(timeout=30000) # milliseconds
-
-    @staticmethod
-    async def start():
-        while True:
-            schedule.run_pending()
-            sleep(1)
+    async def start(self):
+        await self.client.sync_forever(timeout=30000)
 
     def job(self):
 
