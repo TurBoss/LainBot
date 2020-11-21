@@ -60,6 +60,7 @@ class LainBot:
         self.log.info("Initializing system complete.")
 
     async def start(self):
+        self.log.info("Start Sync")
         await self.client.sync_forever(timeout=30000)
 
     def job(self):
