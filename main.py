@@ -53,8 +53,8 @@ class LainBot:
 
         self.room_id = self.config["bot"]["room_id"]
 
-        self.log.info("Start job.")
-        schedule.every().day.at("13:37").do(self.job, room=room)
+        # self.log.info("Start job.")
+        # schedule.every().day.at("13:37").do(self.job)
 
         self.log.info("Initializing system complete.")
 
@@ -64,7 +64,7 @@ class LainBot:
             schedule.run_pending()
             sleep(1)
 
-    def job(self, room):
+    def job(self):
 
         path = self.path
         pic_list = os.listdir(path)
