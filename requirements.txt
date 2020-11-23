@@ -3,3 +3,4 @@ matrix-nio
 schedule
 pyyaml
 python-magic
+Pillow
