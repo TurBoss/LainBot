@@ -66,9 +66,6 @@ class LainBot:
 
         self.client = None
 
-        logger.info("Start job.")
-        schedule.every().day.at("13:37").do(self.job)
-
         logger.info("Initializing system complete.")
 
     async def on_error(self, response):
@@ -85,6 +82,10 @@ class LainBot:
             logger.info('initial sync done, ready for work')
 
     async def start(self):
+
+        logger.info("Register job.")
+        schedule.every().day.at("13:37").do(self.job)
+
         logger.info("Initializing client.")
         self.client = AsyncClient(self.homeserver)
         self.client.access_token = self.access_token
