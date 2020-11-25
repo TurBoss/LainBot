@@ -67,7 +67,7 @@ class LainBot:
         self.users = list()
 
         self.logger.info("Register job.")
-        self.scheduler.every().day.at("19:59").do(self.job)
+        self.scheduler.every().day.at(self.event_time).do(self.job)
         self.loop.create_task(self.timer())
 
         self.logger.info("Initializing system complete.")
