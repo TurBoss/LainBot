@@ -47,10 +47,10 @@ class LainBot:
         log_file = self.config["bot"]["log_file"]
         logging.basicConfig(filename=log_file, level=logging.DEBUG)
 
-        logger = logging.getLogger("LainBot")
-        logger.info("Initializing system.")
+        self.logger = logging.getLogger("LainBot")
+        self.logger.info("Initializing system.")
 
-        logger.info("Start client.")
+        self.logger.info("Start client.")
 
         self.homeserver = self.config["bot"]["host"]
         self.access_token = self.config["bot"]["token"]
@@ -64,10 +64,10 @@ class LainBot:
 
         self.client = None
 
-        logger.info("Initializing system complete.")
+        self.logger.info("Initializing system complete.")
 
     async def on_error(self, response):
-        logger.error(response)
+        self.logger.error(response)
         if self.client:
             await self.client.close()
         sys.exit(1)
@@ -76,21 +76,21 @@ class LainBot:
         if not self._initial_sync_done:
             self._initial_sync_done = True
             for room in self.client.rooms:
-                logger.info('room %s', room)
-            logger.info('initial sync done, ready for work')
+                self.logger.info('room %s', room)
+            self.logger.info('initial sync done, ready for work')
 
     async def start(self):
 
-        logger.info("Register job.")
+        self.logger.info("Register job.")
         schedule.every().day.at("13:37").do(self.job)
 
-        logger.info("Initializing client.")
+        self.logger.info("Initializing client.")
         self.client = AsyncClient(self.homeserver)
         self.client.access_token = self.access_token
         self.client.user_id = self.user_id
         self.client.device_id = self.device_id
 
-        logger.info("Register callbacks.")
+        self.logger.info("Register callbacks.")
         self.client.add_response_callback(self.on_error, SyncError)
         self.client.add_response_callback(self.on_sync, SyncResponse)
         # self.client.add_event_callback(self.on_invite, InviteMemberEvent)
@@ -98,7 +98,7 @@ class LainBot:
         self.client.add_event_callback(self.on_unknown, UnknownEvent)
         self.client.add_event_callback(self.on_image, RoomMessageImage)
 
-        logger.info("Starting initial sync")
+        self.logger.info("Starting initial sync")
         await self.client.sync_forever(timeout=30000)
 
     def job(self):
@@ -143,7 +143,7 @@ class LainBot:
         """
         mime_type = magic.from_file(image, mime=True)  # e.g. "image/jpeg"
         if not mime_type.startswith("image/"):
-            logger.info("Drop message because file does not have an image mime type.")
+            self.logger.info("Drop message because file does not have an image mime type.")
             return
 
         im = Image.open(image)
@@ -158,9 +158,9 @@ class LainBot:
                 filename=os.path.basename(image),
                 filesize=file_stat.st_size)
         if isinstance(resp, UploadResponse):
-            logger.info("Image was uploaded successfully to server. ")
+            self.logger.info("Image was uploaded successfully to server. ")
         else:
-            logger.info(f"Failed to upload image. Failure response: {resp}")
+            self.logger.info(f"Failed to upload image. Failure response: {resp}")
 
         content = {
             "body": os.path.basename(image),  # descriptive title
@@ -182,10 +182,10 @@ class LainBot:
                 message_type="m.room.message",
                 content=content
             )
-            logger.info("Image was sent successfully")
+            self.logger.info("Image was sent successfully")
         except Exception as e:
-            logger.debug(e)
-            logger.info(f"Image send of file {image} failed.")
+            self.logger.debug(e)
+            self.logger.info(f"Image send of file {image} failed.")
 
     async def on_message(self, room, event):
         await self.client.update_receipt_marker(room.room_id, event.event_id)
@@ -200,7 +200,7 @@ class LainBot:
             if msg[1:] == "pic":
                 if event.sender in self.users:
                     return
-                logger.debug("picture for {0}: {1}".format(event.sender, event.body))
+                self.logger.debug("picture for {0}: {1}".format(event.sender, event.body))
                 self.users.append(event.sender)
                 pic_list = os.listdir(self.path)
                 pic_num = randint(a=0, b=len(pic_list) - 1)
@@ -220,15 +220,15 @@ class LainBot:
     async def on_image(self, room, event):
         if not self._initial_sync_done:
             return
-        logger.debug(f"Image received in room {room.display_name}\n"
+        self.logger.debug(f"Image received in room {room.display_name}\n"
                      "{room.user_name(event.sender)} | {event.body}")
 
     def on_unknown(self, room, event):
         if not self._initial_sync_done:
             return
 
-        logger.debug(room.room_id)
-        logger.debug(event)
+        self.logger.debug(room.room_id)
+        self.logger.debug(event)
 
         # if event['type'] == "m.reaction":
         #     if event['content']['m.relates_to']['key'] == '👍️':
