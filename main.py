@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
-import asyncio
+
 import os
 import re
 import sys
-import time
 
 import magic
-import schedule
+import time
 import yaml
 
+import asyncio
 import aiofiles.os
+import aioschedule as schedule
 
 from PIL import Image
-
-from time import sleep
 
 from random import randint
 
@@ -37,6 +36,9 @@ class LainBot:
     def __init__(self, config_path):
 
         self.config = None
+        self.loop = asyncio.get_event_loop()
+
+        self.scheduler = schedule.default_scheduler
 
         with open(config_path, "r") as cfg_file:
             self.config = yaml.safe_load(cfg_file)
@@ -59,10 +61,14 @@ class LainBot:
         self.device_id = self.config["bot"]["device_name"]
         self.room_id = self.config["bot"]["room_id"]
         self.path = self.config["bot"]["pics_path"]
-
-        self.users = list()
+        self.event_time = self.config["bot"]["event_time"]
 
         self.client = None
+        self.users = list()
+
+        self.logger.info("Register job.")
+        self.scheduler.every().day.at("19:59").do(self.job)
+        self.loop.create_task(self.timer())
 
         self.logger.info("Initializing system complete.")
 
@@ -81,9 +87,6 @@ class LainBot:
 
     async def start(self):
 
-        self.logger.info("Register job.")
-        schedule.every().day.at("13:37").do(self.job)
-
         self.logger.info("Initializing client.")
         self.client = AsyncClient(self.homeserver)
         self.client.access_token = self.access_token
@@ -99,19 +102,31 @@ class LainBot:
         self.client.add_event_callback(self.on_image, RoomMessageImage)
 
         self.logger.info("Starting initial sync")
+
         await self.client.sync_forever(timeout=30000)
 
-    def job(self):
+    async def timer(self):
+        # Timer function that runs pending jobs in scheduler,
+        # Is meant to be run in clients event loop by calling
+        # client.loop.create_task(self.timer())
+        while True:
+            await self.scheduler.run_pending()
+            await asyncio.sleep(1)
 
+    async def job(self):
+        self.logger.info("Job started")
         pic_list = os.listdir(self.path)
         pic_num = randint(a=0, b=len(pic_list) - 1)
         pic = pic_list[pic_num]
+
+        self.logger.info(f"Upload {pic}")
+
         pic_path = os.path.join(self.path, pic)
 
-        self.send_image(pic_path)
+        await self.send_image(pic_path)
+        self.logger.info("Job finished")
 
         self.users.clear()
-
         return
 
     async def send_image(self, image):
