@@ -1,11 +1,13 @@
 bot:
   host: "https://homeserver.io"
+  device_name: "host"
   username: "@bot:homeserver.io"
   password: "passwd"
   token: "token"
   room: "#roon:homeserver.io"
   room_id: "!room_id:homeserver.io"
   pics_path: "images"
+  log: "/home/bot/debug.log"
   owners:
     - "@yo:homeserver.io"
     - "@you:homeserver.org"

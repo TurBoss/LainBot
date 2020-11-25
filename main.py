@@ -30,17 +30,11 @@ from nio import (AsyncClient,
 
 import logging
 
-logging.basicConfig(filename='lain.log', level=logging.DEBUG)
-
-logger = logging.getLogger("LainBot")
-
 
 class LainBot:
     _initial_sync_done = False
 
     def __init__(self, config_path):
-
-        logger.info("Initializing system.")
 
         self.config = None
 
@@ -48,9 +42,13 @@ class LainBot:
             self.config = yaml.safe_load(cfg_file)
 
         if self.config is None:
-            logger.error("Missing config.yaml in run arguments.")
-            sys.exit(1)
+            sys.exit(13)
 
+        log_file = self.config["bot"]["log_file"]
+        logging.basicConfig(filename=log_file, level=logging.DEBUG)
+
+        logger = logging.getLogger("LainBot")
+        logger.info("Initializing system.")
 
         logger.info("Start client.")
 
