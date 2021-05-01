@@ -3,10 +3,12 @@
 import os
 import re
 import sys
+from urllib.parse import urlparse
 
 import magic
 import time
 import yaml
+import json
 
 import asyncio
 import aiofiles.os
@@ -25,7 +27,8 @@ from nio import (AsyncClient,
                  SyncResponse,
                  InviteMemberEvent,
                  Event,
-                 UnknownEvent)
+                 UnknownEvent, HttpClient, DownloadResponse)
+
 
 import logging
 
@@ -47,7 +50,8 @@ class LainBot:
             sys.exit(13)
 
         log_file = self.config["bot"]["log_file"]
-        logging.basicConfig(filename=log_file, level=logging.DEBUG)
+        formatter = "%(asctime)s; %(levelname)s; %(message)s"
+        logging.basicConfig(filename=log_file, level=logging.DEBUG, format=formatter)
 
         self.logger = logging.getLogger("LainBot")
         self.logger.info("Initializing system.")
@@ -64,6 +68,7 @@ class LainBot:
         self.event_time = self.config["bot"]["event_time"]
 
         self.client = None
+        self.http_client = None
         self.users = list()
 
         self.logger.info("Register job.")
@@ -92,6 +97,9 @@ class LainBot:
         self.client.access_token = self.access_token
         self.client.user_id = self.user_id
         self.client.device_id = self.device_id
+
+        self.logger.info("Initializing http client.")
+        self.http_client = HttpClient(self.homeserver)
 
         self.logger.info("Register callbacks.")
         self.client.add_response_callback(self.on_error, SyncError)
@@ -235,28 +243,85 @@ class LainBot:
     async def on_image(self, room, event):
         if not self._initial_sync_done:
             return
-        self.logger.debug(f"Image received in room {room.display_name}\n"
-                     "{room.user_name(event.sender)} | {event.body}")
+        self.logger.debug(f"Image received in room {room.display_name}\n{room.user_name(event.sender)} | {event.body}")
 
-    def on_unknown(self, room, event):
+    async def on_unknown(self, room, event):
         if not self._initial_sync_done:
             return
+        room_id = room.room_id
+        self.logger.debug(f"room_id = {room_id}")
+        self.logger.debug(f"event = {event}")
 
-        self.logger.debug(room.room_id)
-        self.logger.debug(event)
+        if event.type == "m.reaction":
+            if event.source['content']['m.relates_to']['key'] == '👍️':
+                self.logger.debug("EVENT KEY")
+                self.logger.debug(f"User {event.sender} Key {event.source['content']['m.relates_to']['key']}")
+                message_event_id = event.source['content']['m.relates_to']['event_id']
+                event_id = event.source['event_id']
+                self.logger.debug(f"Event ID: {event_id} - Reaction ID {message_event_id}")
+                msg = await self.client.room_get_event(room_id=room_id, event_id=message_event_id)
 
-        # if event['type'] == "m.reaction":
-        #     if event['content']['m.relates_to']['key'] == '👍️':
-        #         logger.debug(f"User {event['sender']} Key {event['content']['m.relates_to']['key']}")
-        #         event_id = event['content']['m.relates_to']['event_id']
-        #         logger.debug(f"Event ID: {event_id}")
-        #         room_id = event['room_id']
-        #
-        #         logger.debug("EVENT KEY")
+                # self.logger.debug("MSG")
+                # self.logger.debug(msg)
+                #
+                # self.logger.debug("MSG Transport")
+                # self.logger.debug(msg.transport_response)
+
+                self.logger.debug("Client Response")
+
+                json_data = await self.client.parse_body(msg.transport_response)
+
+                self.logger.debug("JSON Response")
+                self.logger.debug(json_data)
+
+                self.logger.debug("Response Type")
+                self.logger.debug(json_data.get('type'))
+
+                if json_data["type"] == 'm.room.message':
+                    sender = json_data.get('sender')
+                    content = json_data.get('content')
+
+                    if content.get('msgtype') == 'm.image':
+                        mxc = content.get('url')
+                        server_name = urlparse(mxc).netloc
+                        media_id = os.path.basename(urlparse(mxc).path)
+
+                        self.logger.debug(f"MXC = {mxc}")
+                        self.logger.debug(f"Server = {server_name}")
+                        self.logger.debug(f"Media ID = {media_id}")
+
+                        try:
+                            image = await self.client.download(server_name=server_name, media_id=media_id, filename=None, allow_remote=True)
+                            assert isinstance(image, DownloadResponse)
+
+                            filename = image.filename
+                            body = image.body
+                            self.logger.debug(f"filename = {filename}")
+
+                            path = os.path.join(self.path, filename)
+
+                            with open(path, 'wb') as image_file:
+                                image_file.write(body)
+                                image_file.close()
+
+                        except Exception as e:
+                            self.logger.debug(e)
+
+                # message_content = json_data.get("content")
+                # self.logger.debug(message_content.type)
+                #
+                # if message_content.type == 'm.room.message':
+                #     self.logger.debug("GOT Image")
+                #     self.logger.debug(message_content.url)
 
 
 async def main(argv):
-    config_path = argv[1]
+
+    if len(argv) > 1:
+        config_path = argv[1]
+    else:
+        print("usage: -c config.yaml")
+        sys.exit(1)
 
     bot = LainBot(config_path)
     await bot.start()
