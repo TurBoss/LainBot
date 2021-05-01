@@ -304,6 +304,8 @@ class LainBot:
                                 image_file.write(body)
                                 image_file.close()
 
+                            self.logger.debug("Image download success")
+
                         except Exception as e:
                             self.logger.debug(e)
 
