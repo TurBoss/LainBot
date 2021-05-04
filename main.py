@@ -279,6 +279,9 @@ class LainBot:
 
                 if json_data["type"] == 'm.room.message':
                     sender = json_data.get('sender')
+                    if sender not in self.bot_owners:
+                        return
+                    
                     content = json_data.get('content')
 
                     if content.get('msgtype') == 'm.image':
