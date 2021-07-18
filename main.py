@@ -1,14 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import os
-import re
 import sys
 from urllib.parse import urlparse
 
 import magic
-import time
 import yaml
-import json
 
 import asyncio
 import aiofiles.os
@@ -27,7 +24,10 @@ from nio import (AsyncClient,
                  SyncResponse,
                  InviteMemberEvent,
                  Event,
-                 UnknownEvent, HttpClient, DownloadResponse)
+                 UnknownEvent,
+                 HttpClient,
+                 DownloadResponse,
+                 LoginResponse)
 
 
 import logging
@@ -61,6 +61,7 @@ class LainBot:
         self.homeserver = self.config["bot"]["host"]
         self.access_token = self.config["bot"]["token"]
         self.user_id = self.config["bot"]["username"]
+        self.user_pw = self.config["bot"]["password"]
         self.bot_owners = self.config["bot"]["owners"]
         self.device_id = self.config["bot"]["device_name"]
         self.room_id = self.config["bot"]["room_id"]
@@ -80,6 +81,7 @@ class LainBot:
     async def on_error(self, response):
         self.logger.error(response)
         if self.client:
+            self.logger.error("closing client")
             await self.client.close()
         sys.exit(1)
 
@@ -93,6 +95,7 @@ class LainBot:
     async def start(self):
 
         self.logger.info("Initializing client.")
+
         self.client = AsyncClient(self.homeserver)
         self.client.access_token = self.access_token
         self.client.user_id = self.user_id
@@ -102,6 +105,7 @@ class LainBot:
         self.http_client = HttpClient(self.homeserver)
 
         self.logger.info("Register callbacks.")
+
         self.client.add_response_callback(self.on_error, SyncError)
         self.client.add_response_callback(self.on_sync, SyncResponse)
         # self.client.add_event_callback(self.on_invite, InviteMemberEvent)
@@ -320,12 +324,12 @@ class LainBot:
                 #     self.logger.debug(message_content.url)
 
 
-async def main(argv):
+async def main(argv) -> None:
 
     if len(argv) > 1:
         config_path = argv[1]
     else:
-        print("usage: -c config.yaml")
+        print("usage: config.yaml")
         sys.exit(1)
 
     bot = LainBot(config_path)
