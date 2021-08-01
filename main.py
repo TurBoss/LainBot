@@ -237,7 +237,7 @@ class LainBot:
 
             elif msg[1:] == "hello":
                 await self.client.room_typing(room.room_id, True)
-                await self.client.room_send(self.room_id,
+                await self.client.room_send(room.room_id,
                                             message_type="m.room.message",
                                             content="hello")
                 await self.client.room_typing(room.room_id, False)
@@ -312,9 +312,19 @@ class LainBot:
                                 image_file.close()
 
                             self.logger.debug("Image download success")
+                            await self.client.room_typing(room_id, True)
+                            await self.client.room_send(room_id,
+                                                        message_type="m.room.message",
+                                                        content=f"Image {filename} saved!")
+                            await self.client.room_typing(room_id, False)
 
                         except Exception as e:
                             self.logger.debug(e)
+                            await self.client.room_typing(room_id, True)
+                            await self.client.room_send(room_id,
+                                                        message_type="m.room.message",
+                                                        content=f"Ops, Something wrong!")
+                            await self.client.room_typing(room_id, False)
 
                 # message_content = json_data.get("content")
                 # self.logger.debug(message_content.type)
