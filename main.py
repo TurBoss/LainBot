@@ -347,4 +347,4 @@ async def main(argv) -> None:
 
 
 if __name__ == '__main__':
-    asyncio.get_event_loop().run_until_complete(main(sys.argv))
+    asyncio.run(main(sys.argv))
