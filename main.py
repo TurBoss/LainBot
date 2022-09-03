@@ -283,7 +283,7 @@ class LainBot:
                 self.logger.debug(json_data.get('type'))
 
                 if json_data.get('type') == 'm.room.message':
-                    sender = json_data.get('sender')
+                    sender = event.sender
                     
                     self.logger.debug(sender)
                     
