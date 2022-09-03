@@ -312,10 +312,12 @@ class LainBot:
                                 image_file.close()
 
                             self.logger.debug("Image download success")
+                            
                             await self.client.room_typing(room_id, True)
                             await self.client.room_send(room_id,
                                                         message_type="m.room.message",
-                                                        content=f"Image {filename} saved!")
+                                                        content={"body": f"Image {filename} saved!",
+                                                                 "msgtype": "m.text"})
                             await self.client.room_typing(room_id, False)
 
                         except Exception as e:
@@ -323,7 +325,8 @@ class LainBot:
                             await self.client.room_typing(room_id, True)
                             await self.client.room_send(room_id,
                                                         message_type="m.room.message",
-                                                        content=f"Ops, Something wrong!")
+                                                        content={"body": f"Ops, Something went wrong!",
+                                                                 "msgtype": "m.text"})
                             await self.client.room_typing(room_id, False)
 
                 # message_content = json_data.get("content")
