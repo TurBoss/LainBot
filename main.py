@@ -289,7 +289,7 @@ class LainBot:
 
                     content = json_data.get('content')
                     
-                    self.logger.debug(content.get('msgtype')
+                    self.logger.debug(content.get('msgtype'))
                     
                     if content.get('msgtype') == 'm.image':
                         mxc = content.get('url')
