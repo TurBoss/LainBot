@@ -303,32 +303,44 @@ class LainBot:
                         self.logger.debug(f"Server = {server_name}")
                         self.logger.debug(f"Media ID = {media_id}")
 
-                        # try:
+                        try:
                         
-                        image = await self.client.download(server_name=server_name, media_id=media_id, filename=None, allow_remote=True)
-                        assert isinstance(image, DownloadResponse)
+                            image = await self.client.download(server_name=server_name, media_id=media_id, filename=None, allow_remote=True)
+                            assert isinstance(image, DownloadResponse)
+    
+                            filename = image.filename
+                            body = image.body
+                            self.logger.debug(f"filename = {filename}")
+    
+                            path = os.path.join(self.path, filename)
+    
+                            with open(path, 'wb') as image_file:
+                                image_file.write(body)
+                                image_file.close()
+    
+                            self.logger.debug("Image download success")
+                            event_response = await self.client.room_get_event(room.room_id, message_event_id)
+                            if isinstance(event_response, RoomGetEventError):
+                                self.logger.warning(f"Error getting event that was reacted to {message_event_id}")
+                                return
+                            
+                            # await self.client.room_typing(room_id, True)
+                            
+                            await self.client.room_send(room_id,
+                                                        message_type="m.room.message",
+                                                        content={"body": f"Image saved!",
+                                                                 "msgtype": "m.text",
+                                                                 "m.relates_to": {
+                                                                     "m.in_reply_to": {
+                                                                         "event_id": message_event_id
+                                                                         }
+                                                                     }
+                                                                 }
+                                                        )
+                            # await self.client.room_typing(room_id, False)
 
-                        filename = image.filename
-                        body = image.body
-                        self.logger.debug(f"filename = {filename}")
-
-                        path = os.path.join(self.path, filename)
-
-                        with open(path, 'wb') as image_file:
-                            image_file.write(body)
-                            image_file.close()
-
-                        self.logger.debug("Image download success")
-                        
-                        await self.client.room_typing(room_id, True)
-                        await self.client.room_send(room_id,
-                                                    message_type="m.room.message",
-                                                    content={"body": f"Image {filename} saved!",
-                                                             "msgtype": "m.text"})
-                        await self.client.room_typing(room_id, False)
-
-                        # except Exception as e:
-                        #     self.logger.error(e)
+                        except Exception as e:
+                            self.logger.error(e)
 
                 # message_content = json_data.get("content")
                 # self.logger.debug(message_content.type)
