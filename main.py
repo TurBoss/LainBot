@@ -328,8 +328,8 @@ class LainBot:
                             
                             await self.client.room_send(room_id,
                                                         message_type="m.room.message",
-                                                        content={"body": f"Image saved!",
-                                                                 "msgtype": "m.text",
+                                                        content={"body": "👍️",
+                                                                 "msgtype": "m.emote",
                                                                  "m.relates_to": {
                                                                      "m.in_reply_to": {
                                                                          "event_id": message_event_id
