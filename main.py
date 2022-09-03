@@ -288,7 +288,9 @@ class LainBot:
                         return
 
                     content = json_data.get('content')
-
+                    
+                    self.logger.debug(content.get('msgtype')
+                    
                     if content.get('msgtype') == 'm.image':
                         mxc = content.get('url')
                         server_name = urlparse(mxc).netloc
@@ -322,13 +324,7 @@ class LainBot:
                             await self.client.room_typing(room_id, False)
 
                         except Exception as e:
-                            self.logger.debug(e)
-                            await self.client.room_typing(room_id, True)
-                            await self.client.room_send(room_id,
-                                                        message_type="m.room.message",
-                                                        content={"body": f"Ops, Something went wrong!",
-                                                                 "msgtype": "m.text"})
-                            await self.client.room_typing(room_id, False)
+                            self.logger.error(e)
 
                 # message_content = json_data.get("content")
                 # self.logger.debug(message_content.type)
