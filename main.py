@@ -318,9 +318,8 @@ class LainBot:
                             with open(path, 'wb') as image_file:
                                 image_file.write(body)
                                 image_file.close()
-    
-                            self.logger.debug("Image download success")
                             event_response = await self.client.room_get_event(room.room_id, message_event_id)
+                            
                             if isinstance(event_response, RoomGetEventError):
                                 self.logger.warning(f"Error getting event that was reacted to {message_event_id}")
                                 return
@@ -340,6 +339,9 @@ class LainBot:
                                                         )
                             # await self.client.room_typing(room_id, False)
 
+    
+                            self.logger.debug("Image download success")
+                            
                         except Exception as e:
                             self.logger.error(e)
 
