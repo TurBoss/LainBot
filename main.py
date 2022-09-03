@@ -282,7 +282,7 @@ class LainBot:
                 self.logger.debug("Response Type")
                 self.logger.debug(json_data.get('type'))
 
-                if json_dataget('type') == 'm.room.message':
+                if json_data.get('type') == 'm.room.message':
                     sender = json_data.get('sender')
                     if sender not in self.bot_owners:
                         return
