@@ -284,6 +284,9 @@ class LainBot:
 
                 if json_data.get('type') == 'm.room.message':
                     sender = json_data.get('sender')
+                    
+                    self.logger.debug(sender)
+                    
                     if sender not in self.bot_owners:
                         return
 
