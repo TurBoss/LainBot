@@ -239,7 +239,8 @@ class LainBot:
                 await self.client.room_typing(room.room_id, True)
                 await self.client.room_send(room.room_id,
                                             message_type="m.room.message",
-                                            content="hello")
+                                            content={"body": "hello",
+                                                     "msgtype": "m.text"})
                 await self.client.room_typing(room.room_id, False)
 
         return
