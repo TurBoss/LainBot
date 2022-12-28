@@ -41,7 +41,7 @@ class LainBot:
         self.config = None
         self.loop = asyncio.get_event_loop()
 
-        self.scheduler = schedule.default_scheduler
+        self.scheduler = schedule
 
         with open(config_path, "r") as cfg_file:
             self.config = yaml.safe_load(cfg_file)
