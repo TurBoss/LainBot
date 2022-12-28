@@ -9,7 +9,7 @@ import yaml
 
 import asyncio
 import aiofiles.os
-import aioschedule as schedule
+import schedule
 
 from PIL import Image
 

@@ -1,6 +1,6 @@
 # Lain of the matrix
 
-[![ Matrix ][matrix-badge]](https://riot.im/app/#/room/#lain:matrix.org)
+[![ Matrix ][matrix-badge]](https://app.element.io/#/room/#lain:jauriarts.org)
 
 ## DISCLAIMER
 
