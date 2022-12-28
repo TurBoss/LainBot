@@ -30,7 +30,6 @@ from nio import (AsyncClient,
                  DownloadResponse,
                  LoginResponse)
 
-
 import logging
 
 
@@ -285,16 +284,16 @@ class LainBot:
 
                 if json_data.get('type') == 'm.room.message':
                     sender = event.sender
-                    
+
                     self.logger.debug(sender)
-                    
+
                     if sender not in self.bot_owners:
                         return
 
                     content = json_data.get('content')
-                    
+
                     self.logger.debug(content.get('msgtype'))
-                    
+
                     if content.get('msgtype') == 'm.image':
                         mxc = content.get('url')
                         server_name = urlparse(mxc).netloc
@@ -305,27 +304,27 @@ class LainBot:
                         self.logger.debug(f"Media ID = {media_id}")
 
                         try:
-                        
+
                             image = await self.client.download(server_name=server_name, media_id=media_id, filename=None, allow_remote=True)
                             assert isinstance(image, DownloadResponse)
-    
+
                             filename = image.filename
                             body = image.body
                             self.logger.debug(f"filename = {filename}")
-    
+
                             path = os.path.join(self.path, filename)
-    
+
                             with open(path, 'wb') as image_file:
                                 image_file.write(body)
                                 image_file.close()
                             event_response = await self.client.room_get_event(room.room_id, message_event_id)
-                            
+
                             if isinstance(event_response, RoomGetEventError):
                                 self.logger.warning(f"Error getting event that was reacted to {message_event_id}")
                                 return
-                            
+
                             # await self.client.room_typing(room_id, True)
-                            
+
                             await self.client.room_send(room_id,
                                                         message_type="m.room.message",
                                                         content={"body": "Image added to my collection! 👍️",
@@ -339,9 +338,8 @@ class LainBot:
                                                         )
                             # await self.client.room_typing(room_id, False)
 
-    
                             self.logger.debug("Image download success")
-                            
+
                         except Exception as e:
                             self.logger.error(e)
 
