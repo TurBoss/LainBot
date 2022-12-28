@@ -122,7 +122,7 @@ class LainBot:
         # Is meant to be run in clients event loop by calling
         # client.loop.create_task(self.timer())
         while True:
-            await self.scheduler.run_pending()
+            self.scheduler.run_pending()
             await asyncio.sleep(1)
 
     async def job(self):
