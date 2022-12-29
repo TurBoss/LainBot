@@ -34,7 +34,6 @@ from nio import (AsyncClient,
                  LoginResponse)
 
 import logging
-from OpenGL.GL.ARB.transform_feedback_overflow_query import glInitTransformFeedbackOverflowQueryARB
 
 
 class LainBot:
