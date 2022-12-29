@@ -12,7 +12,7 @@ import aiofiles.os
 from asyncio import run
 from datetime import datetime
 
-from apscheduler.schedulers.async_ import AsyncScheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTriggers
 
 from PIL import Image
@@ -46,6 +46,8 @@ class LainBot:
         self.config = None
         self.loop = asyncio.get_event_loop()
 
+        self.scheduler = AsyncIOScheduler()
+
         with open(config_path, "r") as cfg_file:
             self.config = yaml.safe_load(cfg_file)
 
@@ -75,19 +77,9 @@ class LainBot:
         self.http_client = None
         self.users = list()
 
+        self.scheduler.add_job(job, day=1, hour=13, minutes=37)
+        self.scheduler.start()
 
-
-
-    async def init_scheduler(self):
-        self.logger.info("Register job.")
-
-        async with AsyncScheduler() as scheduler:
-            await scheduler.add_schedule(self.job, IntervalTrigger(day=1, hour=14, minute=37))
-            await scheduler.run_until_stopped()
-
-        self.loop.create_task(self.timer())
-
-        self.logger.info("Initializing system complete.")
 
     async def on_error(self, response):
         self.logger.error(response)
@@ -102,8 +94,6 @@ class LainBot:
             for room in self.client.rooms:
                 self.logger.info('room %s', room)
             self.logger.info('initial sync done, ready for work')
-            await self.init_scheduler()
-
 
     async def start(self):
 
