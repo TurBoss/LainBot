@@ -77,7 +77,7 @@ class LainBot:
 
         self.logger.info("Register job.")
         async with AsyncScheduler() as scheduler:
-            await scheduler.add_schedule(self.job, IntervalTrigger(day=1, hour=14, minute=37:glInitTransformFeedbackOverflowQueryARB))
+            await scheduler.add_schedule(self.job, IntervalTrigger(day=1, hour=14, minute=37))
             await scheduler.run_until_stopped()
 
         self.loop.create_task(self.timer())
