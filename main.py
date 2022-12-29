@@ -13,7 +13,6 @@ from asyncio import run
 from datetime import datetime
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.interval import IntervalTriggers
 
 from PIL import Image
 
