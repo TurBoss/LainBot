@@ -75,7 +75,12 @@ class LainBot:
         self.http_client = None
         self.users = list()
 
+
+
+
+    async def init_scheduler(self):
         self.logger.info("Register job.")
+
         async with AsyncScheduler() as scheduler:
             await scheduler.add_schedule(self.job, IntervalTrigger(day=1, hour=14, minute=37))
             await scheduler.run_until_stopped()
@@ -97,6 +102,8 @@ class LainBot:
             for room in self.client.rooms:
                 self.logger.info('room %s', room)
             self.logger.info('initial sync done, ready for work')
+            await self.init_scheduler()
+
 
     async def start(self):
 
