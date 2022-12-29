@@ -75,8 +75,9 @@ class LainBot:
         self.http_client = None
         self.users = list()
 
-        self.scheduler.add_job(self.job, day=1, hour=13, minutes=37)
+        self.scheduler.add_job(self.job, 'cron', day_of_week='mon-sun', hour=13, minute=37)
         self.scheduler.start()
+
 
 
     async def on_error(self, response):
