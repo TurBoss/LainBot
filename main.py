@@ -2,6 +2,7 @@
 
 import os
 import sys
+
 from urllib.parse import urlparse
 
 import magic
@@ -20,6 +21,7 @@ from random import randint
 
 from nio import (AsyncClient,
                  RoomMessageText,
+                 RoomMessage,
                  MatrixRoom,
                  UploadResponse,
                  RoomMessageImage,
@@ -111,7 +113,7 @@ class LainBot:
         self.client.add_response_callback(self.on_error, SyncError)
         self.client.add_response_callback(self.on_sync, SyncResponse)
         # self.client.add_event_callback(self.on_invite, InviteMemberEvent)
-        self.client.add_event_callback(self.on_message, RoomMessageText)
+        self.client.add_event_callback(self.on_message, RoomMessage)
         self.client.add_event_callback(self.on_unknown, UnknownEvent)
         self.client.add_event_callback(self.on_image, RoomMessageImage)
 
@@ -216,8 +218,8 @@ class LainBot:
             self.logger.debug(e)
             self.logger.info(f"Image send of file {image} failed.")
 
-    async def on_message(self, room, event):
-        await self.client.update_receipt_marker(room.room_id, event.event_id)
+    async def on_message(self, room_id, event):
+        await self.client.update_receipt_marker(room_id, event.event_id)
 
         if not self._initial_sync_done:
             return
