@@ -249,10 +249,10 @@ class LainBot:
 
         return
 
-    async def on_image(self, room, event):
+    async def on_image(self, room_id, event):
         if not self._initial_sync_done:
             return
-        self.logger.debug(f"Image received in room {room.display_name} sent by {room.user_name(event.sender)} | {event.body}")
+        self.logger.debug(f"Image received in room {room_id}")
 
     async def on_unknown(self, room, event):
         if not self._initial_sync_done:
