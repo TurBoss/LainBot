@@ -240,12 +240,12 @@ class LainBot:
                 await self.send_image(pic_path)
 
             elif msg[1:] == "hello":
-                await self.client.room_typing(room.room_id, True)
-                await self.client.room_send(room.room_id,
+                await self.client.room_typing(room_id, True)
+                await self.client.room_send(room_id,
                                             message_type="m.room.message",
                                             content={"body": "hello",
                                                      "msgtype": "m.text"})
-                await self.client.room_typing(room.room_id, False)
+                await self.client.room_typing(room_id, False)
 
         return
 
@@ -254,10 +254,10 @@ class LainBot:
             return
         self.logger.debug(f"Image received in room {room_id}")
 
-    async def on_unknown(self, room, event):
+    async def on_unknown(self, room_id, event):
         if not self._initial_sync_done:
             return
-        room_id = room.room_id
+
         self.logger.debug(f"room_id = {room_id}")
         self.logger.debug(f"event = {event}")
 
@@ -321,7 +321,7 @@ class LainBot:
                             with open(path, 'wb') as image_file:
                                 image_file.write(body)
                                 image_file.close()
-                            event_response = await self.client.room_get_event(room.room_id, message_event_id)
+                            event_response = await self.client.room_get_event(room_id, message_event_id)
 
                             if isinstance(event_response, RoomGetEventError):
                                 self.logger.warning(f"Error getting event that was reacted to {message_event_id}")
@@ -364,6 +364,7 @@ async def main(argv) -> None:
         sys.exit(1)
 
     bot = LainBot(config_path)
+    
     await bot.start()
 
 
