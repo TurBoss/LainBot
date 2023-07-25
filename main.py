@@ -22,6 +22,7 @@ from random import randint
 from nio import (AsyncClient,
                  RoomMessageText,
                  RoomMessage,
+                 RoomMessageText,
                  MatrixRoom,
                  UploadResponse,
                  RoomMessageImage,
@@ -113,7 +114,7 @@ class LainBot:
         self.client.add_response_callback(self.on_error, SyncError)
         self.client.add_response_callback(self.on_sync, SyncResponse)
         # self.client.add_event_callback(self.on_invite, InviteMemberEvent)
-        self.client.add_event_callback(self.on_message, RoomMessage)
+        self.client.add_event_callback(self.on_message, RoomMessageText)
         self.client.add_event_callback(self.on_unknown, UnknownEvent)
         self.client.add_event_callback(self.on_image, RoomMessageImage)
 
@@ -218,11 +219,14 @@ class LainBot:
             self.logger.debug(e)
             self.logger.info(f"Image send of file {image} failed.")
 
-    async def on_message(self, room_id, event):
-        await self.client.update_receipt_marker(room_id, event.event_id)
-
+    async def on_message(self, room, event):
         if not self._initial_sync_done:
             return
+                
+        room_id = room.room_id        
+        
+        await self.client.update_receipt_marker(room_id, event.event_id)
+        
         if event.sender == self.client.user_id:
             return
 
@@ -241,10 +245,11 @@ class LainBot:
 
             elif msg[1:] == "hello":
                 await self.client.room_typing(room_id, True)
-                await self.client.room_send(room_id,
+                await self.client.room_send(room_id=room_id,
                                             message_type="m.room.message",
-                                            content={"body": "hello",
-                                                     "msgtype": "m.text"})
+                                            content={"msgtype": "m.text",
+                                                     "body": "hello"}
+                                            )
                 await self.client.room_typing(room_id, False)
 
         return
@@ -254,10 +259,12 @@ class LainBot:
             return
         self.logger.debug(f"Image received in room {room_id}")
 
-    async def on_unknown(self, room_id, event):
+    async def on_unknown(self, room, event):
         if not self._initial_sync_done:
             return
-
+        
+        room_id = room.room_id
+        
         self.logger.debug(f"room_id = {room_id}")
         self.logger.debug(f"event = {event}")
 
