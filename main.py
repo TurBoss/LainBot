@@ -140,13 +140,13 @@ class LainBot:
 
         pic_path = os.path.join(self.path, pic)
 
-        await self.send_image(pic_path)
+        await self.send_image(self.room_id, pic_path)
         self.logger.info("Job finished")
 
         self.users.clear()
         return
 
-    async def send_image(self, image):
+    async def send_image(self, room, image):
         """Send image to to matrix.
         Arguments:
         ---------
@@ -210,7 +210,7 @@ class LainBot:
 
         try:
             await self.client.room_send(
-                self.room_id,
+                room,
                 message_type="m.room.message",
                 content=content
             )
@@ -223,32 +223,35 @@ class LainBot:
         if not self._initial_sync_done:
             return
                 
-        room_id = room.room_id        
+        room_id = room.room_id 
+        msg = event.body       
         
         await self.client.update_receipt_marker(room_id, event.event_id)
         
         if event.sender == self.client.user_id:
             return
 
-        msg = event.body
+        
         if msg.startswith("!"):
             if msg[1:] == "pic":
                 if event.sender in self.users:
                     return
                 self.logger.debug("picture for {0}: {1}".format(event.sender, event.body))
-                self.users.append(event.sender)
+                if event.sender not in self.bot_owners:
+                    self.users.append(event.sender)
                 pic_list = os.listdir(self.path)
                 pic_num = randint(a=0, b=len(pic_list) - 1)
                 pic = pic_list[pic_num]
                 pic_path = os.path.join(self.path, pic)
-                await self.send_image(pic_path)
+                await self.send_image(room_id, pic_path)
 
             elif msg[1:] == "hello":
                 await self.client.room_typing(room_id, True)
                 await self.client.room_send(room_id=room_id,
                                             message_type="m.room.message",
-                                            content={"msgtype": "m.text",
-                                                     "body": "hello"}
+                                            content={
+                                                "msgtype": "m.text",
+                                                "body": "hello"}
                                             )
                 await self.client.room_typing(room_id, False)
 
@@ -336,17 +339,20 @@ class LainBot:
 
                             # await self.client.room_typing(room_id, True)
 
-                            await self.client.room_send(room_id,
-                                                        message_type="m.room.message",
-                                                        content={"body": "Image added to my collection! 👍️",
-                                                                 "msgtype": "m.text",
-                                                                 "m.relates_to": {
-                                                                     "m.in_reply_to": {
-                                                                         "event_id": message_event_id
-                                                                         }
-                                                                     }
-                                                                 }
-                                                        )
+                            await self.client.room_send(
+                                room_id,
+                                message_type="m.room.message",
+                                content={
+                                    "creator": self.user_id,                                                            
+                                    "body": "Image added to my collection! 👍️",
+                                    "msgtype": "m.text",
+                                    "m.relates_to": {
+                                        "m.in_reply_to": {
+                                            "event_id": message_event_id
+                                        }
+                                    }
+                                }
+                            )
                             # await self.client.room_typing(room_id, False)
 
                             self.logger.debug("Image download success")
@@ -367,7 +373,7 @@ async def main(argv) -> None:
     if len(argv) > 1:
         config_path = argv[1]
     else:
-        print("usage: config.yaml")
+        print("usage: python3 main.py config.yaml")
         sys.exit(1)
 
     bot = LainBot(config_path)
