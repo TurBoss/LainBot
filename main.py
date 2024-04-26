@@ -22,6 +22,7 @@ from random import randint
 from aiohttp import ClientConnectionError, ServerDisconnectedError
 
 from nio import (AsyncClient,
+                 AsyncClientConfig,
                  RoomMessageText,
                  RoomMessage,
                  RoomMessageText,
@@ -49,6 +50,7 @@ class LainBot:
 
     def __init__(self, config_path):
 
+        self.client_config = None
         self.config = None
         self.loop = asyncio.get_event_loop()
 
@@ -60,7 +62,7 @@ class LainBot:
         # if self.config is None:
         #     sys.exit(13)
         # Configure the database
-        store = Storage(self.config.database)
+        self.store = Storage(self.config.database)
 
         self.logger = logging.getLogger("LainBot")
 
@@ -86,7 +88,6 @@ class LainBot:
         self.scheduler.start()
 
 
-
     async def on_error(self, response):
         self.logger.error(response)
         if self.client:
@@ -104,8 +105,14 @@ class LainBot:
     async def start(self):
 
         self.logger.info("Initializing client.")
-
-        self.client = AsyncClient(self.homeserver)
+        self.client_config = AsyncClientConfig(
+            max_limit_exceeded=0,
+            max_timeouts=0,
+            store_sync_tokens=True,
+            encryption_enabled=True,
+        )
+        self.client = AsyncClient(self.homeserver, self.config.user_id, device_id=self.config.device_id,
+                                  store_path=self.config.store_path, config=self.client_config)
         self.client.access_token = self.access_token
         self.client.user_id = self.user_id
         self.client.device_id = self.device_id
