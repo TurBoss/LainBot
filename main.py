@@ -75,7 +75,8 @@ class LainBot:
         self.bot_owners = self.config.owners
         self.device_id = self.config.device_name
         self.room_id = self.config.room_id
-        self.path = self.config.pics_path.event_time
+        self.path = self.config.pics_path
+        self.event_time = self.config.event_time
 
         self.client = None
         self.http_client = None
