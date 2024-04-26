@@ -62,6 +62,7 @@ class LainBot:
         logging.basicConfig(filename=log_file, level=logging.DEBUG, format=formatter)
 
         self.logger = logging.getLogger("LainBot")
+        self.logger.setLevel(logging.INFO)
         self.logger.info("Initializing system.")
 
         self.logger.info("Start client.")
@@ -280,7 +281,7 @@ class LainBot:
     async def on_image(self, room_id, event):
         if not self._initial_sync_done:
             return
-        self.logger.debug(f"Image received in room {room_id}")
+        self.logger.info(f"Image received in room {room_id}")
 
     async def on_unknown(self, room, event):
         if not self._initial_sync_done:
