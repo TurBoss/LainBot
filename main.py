@@ -19,6 +19,8 @@ from PIL import Image
 
 from random import randint
 
+from aiohttp import ClientConnectionError, ServerDisconnectedError
+
 from nio import (AsyncClient,
                  RoomMessageText,
                  RoomMessage,
@@ -119,8 +121,26 @@ class LainBot:
         self.client.add_event_callback(self.on_image, RoomMessageImage)
 
         self.logger.info("Starting initial sync")
+        # Keep trying to reconnect on failure (with some time in-between)
+        while True:
+            try:
 
-        await self.client.sync_forever(timeout=30000)
+                # Use token to log in
+                self.client.load_store()
+
+                # Sync encryption keys with the server
+                if self.client.should_upload_keys:
+                    await self.client.keys_upload()
+
+                await self.client.sync_forever(timeout=30000)
+            except (ClientConnectionError, ServerDisconnectedError):
+                self.logger.warning("Unable to connect to homeserver, retrying in 15s...")
+
+                # Sleep so we don't bombard the server with login requests
+                self.sleep(15)
+            finally:
+                # Make sure to close the client connection on disconnect
+                await self.client.close()
 
     async def timer(self):
         # Timer function that runs pending jobs in scheduler,
