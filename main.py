@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 import magic
 import yaml
 
+import time
 import asyncio
 import aiofiles.os
 from asyncio import run
@@ -105,6 +106,7 @@ class LainBot:
             self.logger.error("closing client")
             await self.client.close()
 
+
     async def on_sync(self, _response):
         if not self._initial_sync_done:
             self._initial_sync_done = True
@@ -156,7 +158,7 @@ class LainBot:
                 self.logger.warning("Unable to connect to homeserver, retrying in 15s...")
 
                 # Sleep so we don't bombard the server with login requests
-                self.sleep(15)
+                time.sleep(15)
             finally:
                 # Make sure to close the client connection on disconnect
                 await self.client.close()
