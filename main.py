@@ -43,7 +43,10 @@ from storage import Storage
 from config import Config
 
 import logging
+from logging import Formatter
 
+TERM_FORMAT = '[%(name)s][%(levelname)s]  %(message)s (%(filename)s:%(lineno)d)'
+FILE_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 class LainBot:
     _initial_sync_done = False
@@ -65,6 +68,14 @@ class LainBot:
         self.store = Storage(self.config.database)
 
         self.logger = logging.getLogger("LainBot")
+
+        # Add console handler
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.DEBUG)
+        console_format = Formatter(TERM_FORMAT)
+        console_handler.setFormatter(console_format)
+        self.logger.addHandler(console_handler)
+
 
         self.logger.info("Initializing system.")
 

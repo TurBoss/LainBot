@@ -1,4 +1,6 @@
 matrix-nio
+matrix-nio[E2E]
+python-olm
 pyyaml
 python-magic
 Pillow
