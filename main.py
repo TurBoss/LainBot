@@ -38,6 +38,9 @@ from nio import (AsyncClient,
                  DownloadResponse,
                  LoginResponse)
 
+from storage import Storage
+from config import Config
+
 import logging
 
 
@@ -50,13 +53,14 @@ class LainBot:
         self.loop = asyncio.get_event_loop()
 
         self.scheduler = AsyncIOScheduler()
-
-        with open(config_path, "r") as cfg_file:
-            self.config = yaml.safe_load(cfg_file)
-
-        if self.config is None:
-            sys.exit(13)
-
+        self.config = Config(config_path)
+        # with open(config_path, "r") as cfg_file:
+        #     self.config = yaml.safe_load(cfg_file)
+        #
+        # if self.config is None:
+        #     sys.exit(13)
+        # Configure the database
+        store = Storage(self.config.database)
         log_file = self.config["bot"]["log_file"]
         formatter = "%(asctime)s; %(levelname)s; %(message)s"
         logging.basicConfig(filename=log_file, level=logging.DEBUG, format=formatter)
@@ -67,14 +71,14 @@ class LainBot:
 
         self.logger.info("Start client.")
 
-        self.homeserver = self.config["bot"]["host"]
-        self.access_token = self.config["bot"]["token"]
-        self.user_id = self.config["bot"]["username"]
-        self.user_pw = self.config["bot"]["password"]
-        self.bot_owners = self.config["bot"]["owners"]
-        self.device_id = self.config["bot"]["device_name"]
-        self.room_id = self.config["bot"]["room_id"]
-        self.path = self.config["bot"]["pics_path"]
+        self.homeserver = self.config.homeserver_url
+        self.access_token = self.config.user_token
+        self.user_id = self.config.user_id
+        self.user_pw = self.config.user_password
+        self.bot_owners = self.config.owners
+        self.device_id = self.config.device_name
+        self.room_id = self.config.room_id
+        self.path = self.config.pics_path
         self.event_time = self.config["bot"]["event_time"]
 
         self.client = None

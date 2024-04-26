@@ -1,13 +1,37 @@
-bot:
-  host: "https://homeserver.io"
-  device_name: "host"
-  username: "@bot:homeserver.io"
-  password: "passwd"
-  token: "token"
+
+matrix:
+  # The Matrix User ID of the bot account
+  user_id: "@bot:example.com"
+  # Matrix account password (optional if access token used)
+  user_password: ""
+  user_token: ""
+  # Matrix account access token (optional if password used)
+  #user_token: ""
+  # The URL of the homeserver to connect to
+  homeserver_url: https://example.com
+  # The device ID that is **non pre-existing** device
+  # If this device ID already exists, messages will be dropped silently in encrypted rooms
+  device_id: ABCDEFGHIJ
+  # What to name the logged in device
+  device_name: my-project-name
+
   room: "#roon:homeserver.io"
   room_id: "!room_id:homeserver.io"
+
   pics_path: "images"
+
   log: "/home/bot/debug.log"
   owners:
     - "@yo:homeserver.io"
     - "@you:homeserver.org"
+
+storage:
+  # The database connection string
+  # For SQLite3, this would look like:
+  #     database: "sqlite://bot.db"
+  # For Postgres, this would look like:
+  #     database: "postgres://username:password@localhost/dbname?sslmode=disable"
+  database: "sqlite://bot.db"
+  # The path to a directory for internal bot storage
+  # containing encryption keys, sync tokens, etc.
+  store_path: "./store"
