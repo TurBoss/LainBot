@@ -104,7 +104,6 @@ class LainBot:
         if self.client:
             self.logger.error("closing client")
             await self.client.close()
-        sys.exit(1)
 
     async def on_sync(self, _response):
         if not self._initial_sync_done:
