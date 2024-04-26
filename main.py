@@ -61,12 +61,9 @@ class LainBot:
         #     sys.exit(13)
         # Configure the database
         store = Storage(self.config.database)
-        log_file = self.config["bot"]["log_file"]
-        formatter = "%(asctime)s; %(levelname)s; %(message)s"
-        logging.basicConfig(filename=log_file, level=logging.DEBUG, format=formatter)
 
         self.logger = logging.getLogger("LainBot")
-        self.logger.setLevel(logging.INFO)
+
         self.logger.info("Initializing system.")
 
         self.logger.info("Start client.")
@@ -78,8 +75,7 @@ class LainBot:
         self.bot_owners = self.config.owners
         self.device_id = self.config.device_name
         self.room_id = self.config.room_id
-        self.path = self.config.pics_path
-        self.event_time = self.config["bot"]["event_time"]
+        self.path = self.config.pics_path.event_time
 
         self.client = None
         self.http_client = None
