@@ -216,7 +216,7 @@ class LainBot:
         """
         mime_type = magic.from_file(image, mime=True)  # e.g. "image/jpeg"
         if not mime_type.startswith("image/"):
-            self.logger.info("Drop message because file does not have an image mime type.")
+            self.logger.warning("Drop message because file does not have an image mime type.")
             return
 
         im = Image.open(image)
@@ -233,7 +233,8 @@ class LainBot:
         if isinstance(resp, UploadResponse):
             self.logger.info("Image was uploaded successfully to server. ")
         else:
-            self.logger.info(f"Failed to upload image. Failure response: {resp}")
+            self.logger.warning(f"Failed to upload image. Failure response: {resp}")
+            return
 
         content = {
             "body": os.path.basename(image),  # descriptive title
