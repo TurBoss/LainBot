@@ -38,7 +38,8 @@ from nio import (AsyncClient,
                  UnknownEvent,
                  HttpClient,
                  DownloadResponse,
-                 LoginResponse)
+                 LoginResponse,
+                 ReactionEvent)
 
 from storage import Storage
 from config import Config
@@ -138,7 +139,7 @@ class LainBot:
         self.client.add_response_callback(self.on_sync, SyncResponse)
         # self.client.add_event_callback(self.on_invite, InviteMemberEvent)
         self.client.add_event_callback(self.on_message, RoomMessageText)
-        self.client.add_event_callback(self.on_unknown, UnknownEvent)
+        self.client.add_event_callback(self.on_unknown, ReactionEvent)
         self.client.add_event_callback(self.on_image, RoomMessageImage)
 
         self.logger.info("Starting initial sync")
@@ -314,7 +315,7 @@ class LainBot:
         self.logger.debug(f"event = {event}")
 
         if event.type == "m.reaction":
-            if event.source['content']['m.relates_to']['key'] == '👍️':
+            if event.source['content']['m.relates_to']['key'] == '❤️':
                 self.logger.debug("EVENT KEY")
                 self.logger.debug(f"User {event.sender} Key {event.source['content']['m.relates_to']['key']}")
                 message_event_id = event.source['content']['m.relates_to']['event_id']
@@ -386,7 +387,7 @@ class LainBot:
                                 message_type="m.room.message",
                                 content={
                                     "creator": self.user_id,                                                            
-                                    "body": "Image added to my collection! 👍️",
+                                    "body": "Pic added to our database! 👍️",
                                     "msgtype": "m.text",
                                     "m.relates_to": {
                                         "m.in_reply_to": {
