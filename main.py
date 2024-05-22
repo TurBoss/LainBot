@@ -317,6 +317,7 @@ class LainBot:
 
         if isinstance(event, ReactionEvent):
             pprint(event.source)
+            pprint(event)
             if event.source['content']['m.relates_to']['key'] == '❤️':
                 self.logger.debug("EVENT KEY")
                 self.logger.debug(f"User {event.sender} Key {event.source['content']['m.relates_to']['key']}")
