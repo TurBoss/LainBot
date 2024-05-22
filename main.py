@@ -2,18 +2,14 @@
 
 import os
 import sys
-from pprint import pprint
 
 from urllib.parse import urlparse
 
 import magic
-import yaml
 
 import time
 import asyncio
 import aiofiles.os
-from asyncio import run
-from datetime import datetime
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -316,9 +312,7 @@ class LainBot:
         self.logger.debug(f"event = {event}")
 
         if isinstance(event, ReactionEvent):
-            pprint(event.source)
-            pprint(event.key)
-            if event.key == '❤️':
+            if event.key == '👍️':
                 self.logger.debug("EVENT KEY")
                 self.logger.debug(f"User {event.sender} Key {event.source['content']['m.relates_to']['key']}")
                 message_event_id = event.source['content']['m.relates_to']['event_id']
@@ -390,7 +384,7 @@ class LainBot:
                                 message_type="m.room.message",
                                 content={
                                     "creator": self.user_id,                                                            
-                                    "body": "Pic added to our database! 👍️",
+                                    "body": "Pic added to our database! ❤️️",
                                     "msgtype": "m.text",
                                     "m.relates_to": {
                                         "m.in_reply_to": {
