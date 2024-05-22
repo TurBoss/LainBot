@@ -2,6 +2,7 @@
 
 import os
 import sys
+from pprint import pprint
 
 from urllib.parse import urlparse
 
@@ -315,6 +316,7 @@ class LainBot:
         self.logger.debug(f"event = {event}")
 
         if isinstance(event, ReactionEvent):
+            pprint(event.source)
             if event.source['content']['m.relates_to']['key'] == '❤️':
                 self.logger.debug("EVENT KEY")
                 self.logger.debug(f"User {event.sender} Key {event.source['content']['m.relates_to']['key']}")
