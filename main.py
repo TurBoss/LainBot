@@ -139,7 +139,7 @@ class LainBot:
         self.client.add_response_callback(self.on_sync, SyncResponse)
         # self.client.add_event_callback(self.on_invite, InviteMemberEvent)
         self.client.add_event_callback(self.on_message, RoomMessageText)
-        self.client.add_event_callback(self.on_unknown, ReactionEvent)
+        self.client.add_event_callback(self.on_reaction, ReactionEvent)
         self.client.add_event_callback(self.on_image, RoomMessageImage)
 
         self.logger.info("Starting initial sync")
@@ -305,7 +305,7 @@ class LainBot:
             return
         self.logger.info(f"Image received in room {room_id}")
 
-    async def on_unknown(self, room, event):
+    async def on_reaction(self, room, event):
         if not self._initial_sync_done:
             return
         
@@ -314,7 +314,7 @@ class LainBot:
         self.logger.debug(f"room_id = {room_id}")
         self.logger.debug(f"event = {event}")
 
-        if event.type == "m.reaction":
+        if isinstance(event, ReactionEvent):
             if event.source['content']['m.relates_to']['key'] == '❤️':
                 self.logger.debug("EVENT KEY")
                 self.logger.debug(f"User {event.sender} Key {event.source['content']['m.relates_to']['key']}")
