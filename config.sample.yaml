@@ -35,3 +35,11 @@ storage:
   # The path to a directory for internal bot storage
   # containing encryption keys, sync tokens, etc.
   store_path: "./store"
+
+  logging:
+    level: DEBUG
+    file_logging:
+      enabled: true
+      filepath: "log/lain.log"
+    console_logging:
+      enabled: true

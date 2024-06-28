@@ -6,3 +6,5 @@ python-magic
 Pillow
 aiofiles
 apscheduler
+imagehash
+olefile

@@ -2,6 +2,7 @@
 
 import os
 import sys
+import io
 
 from urllib.parse import urlparse
 
@@ -10,13 +11,13 @@ import magic
 import time
 import asyncio
 import aiofiles.os
+import imagehash
 
+from pprint import pprint
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-
+from pathlib import Path
 from PIL import Image
-
 from random import randint
-
 from aiohttp import ClientConnectionError, ServerDisconnectedError
 
 from nio import (AsyncClient,
@@ -271,7 +272,6 @@ class LainBot:
         if event.sender == self.client.user_id:
             return
 
-        
         if msg.startswith("!"):
             if msg[1:] == "pic":
                 if event.sender in self.users:
@@ -357,48 +357,93 @@ class LainBot:
                         self.logger.debug(f"Server = {server_name}")
                         self.logger.debug(f"Media ID = {media_id}")
 
-                        try:
+                        # try:
 
-                            image = await self.client.download(server_name=server_name, media_id=media_id, filename=None, allow_remote=True)
-                            assert isinstance(image, DownloadResponse)
+                        image = await self.client.download(server_name=server_name, media_id=media_id, filename=None, allow_remote=True)
+                        assert isinstance(image, DownloadResponse)
 
-                            filename = image.filename
-                            body = image.body
-                            self.logger.debug(f"filename = {filename}")
+                        filename = image.filename
+                        body = image.body
+                        self.logger.debug(f"filename = {filename}")
 
-                            path = os.path.join(self.path, filename)
 
-                            with open(path, 'wb') as image_file:
-                                image_file.write(body)
-                                image_file.close()
-                            event_response = await self.client.room_get_event(room_id, message_event_id)
+                        imageStream = io.BytesIO(body)
+                        imageFile = Image.open(imageStream)
+                        new_hash = imagehash.average_hash(imageFile)
 
-                            if isinstance(event_response, RoomGetEventError):
-                                self.logger.warning(f"Error getting event that was reacted to {message_event_id}")
-                                return
+                        # self.logger.debug(hash)
+                        # self.logger.debug("IMAGES")
+                        #self.logger.debug(self.get_stored_images())
 
-                            # await self.client.room_typing(room_id, True)
+                        image_duped = False
 
-                            await self.client.room_send(
-                                room_id,
-                                message_type="m.room.message",
-                                content={
-                                    "creator": self.user_id,                                                            
-                                    "body": "Pic added to our database! ❤️️",
-                                    "msgtype": "m.text",
-                                    "m.relates_to": {
-                                        "m.in_reply_to": {
-                                            "event_id": message_event_id
+                        for image in  self.get_stored_images():
+                            print(image)
+                            stored_hash = imagehash.average_hash(Image.open(image))
+                            if stored_hash == new_hash:
+                                self.logger.debug("Image found in db")
+                                image_duped = True
+
+                                await self.client.room_typing(room_id, True)
+
+                                await self.client.room_send(
+                                    room_id,
+                                    message_type="m.room.message",
+                                    content={
+                                        "creator": self.user_id,
+                                        "body": "Image already in our database!",
+                                        "msgtype": "m.text",
+                                        "m.relates_to": {
+                                            "m.in_reply_to": {
+                                                "event_id": message_event_id
+                                            }
                                         }
                                     }
+                                )
+
+                                await self.client.room_typing(room_id, False)
+
+                                break
+
+                        if image_duped:
+
+                            return
+
+
+                        path = os.path.join(self.path, filename)
+
+                        with open(path, 'wb') as image_file:
+                            image_file.write(body)
+                            image_file.close()
+                        event_response = await self.client.room_get_event(room_id, message_event_id)
+
+                        if isinstance(event_response, RoomGetEventError):
+                            self.logger.warning(f"Error getting event that was reacted to {message_event_id}")
+                            return
+
+                        await self.client.room_typing(room_id, True)
+
+                        await self.client.room_send(
+                            room_id,
+                            message_type="m.room.message",
+                            content={
+                                "creator": self.user_id,
+                                "body": "Image added to our database! ❤️️",
+                                "msgtype": "m.text",
+                                "m.relates_to": {
+                                    "m.in_reply_to": {
+                                        "event_id": message_event_id
+                                    }
                                 }
-                            )
-                            # await self.client.room_typing(room_id, False)
+                            }
+                        )
 
-                            self.logger.debug("Image download success")
+                        await self.client.room_typing(room_id, False)
 
-                        except Exception as e:
-                            self.logger.error(e)
+                        self.logger.debug("Image download success")
+
+                        # except Exception as e:
+                        #     self.logger.error(e)
 
                 # message_content = json_data.get("content")
                 # self.logger.debug(message_content.type)
@@ -406,7 +451,10 @@ class LainBot:
                 # if message_content.type == 'm.room.message':
                 #     self.logger.debug("GOT Image")
                 #     self.logger.debug(message_content.url)
+    def get_stored_images(self):
 
+        images = Path(self.path).iterdir()
+        return images
 
 async def main(argv) -> None:
 
