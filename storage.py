@@ -8,7 +8,7 @@ from typing import Any, Dict
 # the version specified here.
 #
 # When a migration is performed, the `migration_version` table should be incremented.
-latest_migration_version = 0
+latest_migration_version = 1
 
 logger = logging.getLogger(__name__)
 
@@ -102,15 +102,48 @@ class Storage:
         """
         logger.debug("Checking for necessary database migrations...")
 
-        # if current_migration_version < 1:
-        #    logger.info("Migrating the database from v0 to v1...")
-        #
-        #    # Add new table, delete old ones, etc.
-        #
-        #    # Update the stored migration version
-        #    self._execute("UPDATE migration_version SET version = 1")
-        #
-        #    logger.info("Database migrated to v1")
+        if current_migration_version < 1:
+            logger.info("Migrating the database from v0 to v1...")
+
+            # Store perceptual hashes of archived images so duplicate
+            # detection is an index lookup instead of re-hashing every file.
+            self._execute(
+                """
+                CREATE TABLE IF NOT EXISTS image_hashes (
+                    hash TEXT PRIMARY KEY,
+                    filename TEXT NOT NULL
+                )
+            """
+            )
+
+            # Update the stored migration version
+            self._execute("UPDATE migration_version SET version = 1")
+
+            logger.info("Database migrated to v1")
+
+    def has_hash(self, image_hash: str) -> bool:
+        """Return True if an image with this perceptual hash is already stored."""
+        self._execute(
+            "SELECT 1 FROM image_hashes WHERE hash = ?", (str(image_hash),)
+        )
+        return self.cursor.fetchone() is not None
+
+    def add_hash(self, image_hash: str, filename: str) -> None:
+        """Record the perceptual hash of a stored image (idempotent)."""
+        if self.has_hash(image_hash):
+            return
+
+        self._execute(
+            "INSERT INTO image_hashes (hash, filename) VALUES (?, ?)",
+            (str(image_hash), filename),
+        )
+
+    def close(self) -> None:
+        """Close the database connection."""
+        try:
+            self.cursor.close()
+        finally:
+            self.conn.close()
 
     def _execute(self, *args) -> None:
         """A wrapper around cursor.execute that transforms placeholder ?'s to %s for postgres.
