@@ -556,13 +556,50 @@ class LainBot:
 
                         self.logger.debug("Image download success")
 
+async def login_helper(config_path):
+    """One-time helper: log in with the configured password to create a
+    dedicated device, then print the matching access token/device_id to put
+    in config.yaml for token-only auth."""
+    config = Config(config_path)
+
+    if not config.user_password:
+        print("No user_password in config; cannot log in.")
+        return
+
+    client = AsyncClient(config.homeserver_url, config.user_id,
+                         device_id=config.device_id)
+    try:
+        response = await client.login(
+            password=config.user_password,
+            device_name=config.device_name,
+        )
+    finally:
+        await client.close()
+
+    if not isinstance(response, LoginResponse):
+        print(f"Login failed: {response}")
+        return
+
+    print("Login successful. Add these to config.yaml:")
+    print(f"  user_id:    {response.user_id}")
+    print(f"  device_id:  {response.device_id}")
+    print(f"  user_token: {response.access_token}")
+    print()
+    print("Then remove/blank user_password, delete the stale store/ directory,")
+    print("and start the bot normally.")
+
+
 async def main(argv) -> None:
 
-    if len(argv) > 1:
-        config_path = argv[1]
-    else:
-        print("usage: python3 main.py config.yaml")
+    if len(argv) < 2:
+        print("usage: python3 main.py config.yaml [--login]")
         sys.exit(1)
+
+    config_path = argv[1]
+
+    if "--login" in argv[2:]:
+        await login_helper(config_path)
+        return
 
     bot = LainBot(config_path)
 
