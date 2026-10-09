@@ -27,6 +27,8 @@ from nio import (AsyncClient,
                  SyncError,
                  SyncResponse,
                  DownloadResponse,
+                 LoginResponse,
+                 WhoamiResponse,
                  ReactionEvent)
 
 from storage import Storage
@@ -123,6 +125,60 @@ class LainBot:
         finally:
             self.client = None
 
+    async def _authenticate(self):
+        """Establish credentials and make sure the client uses the correct
+        device id before the E2E crypto store is created.
+
+        With an access token the server is authoritative about which device
+        the token belongs to -- if the configured device_id differs, key
+        uploads fail with M_BAD_JSON.
+        """
+        if self.access_token:
+            response = await self.client.whoami()
+            if not isinstance(response, WhoamiResponse):
+                raise RuntimeError(f"whoami failed: {response}")
+            if not response.device_id:
+                raise RuntimeError(
+                    "Access token is not bound to a device; end-to-end "
+                    "encryption needs a device id. Log in with a password "
+                    "or provide a token that has an associated device."
+                )
+            # The server is authoritative: adopt its user_id/device_id so the
+            # E2E crypto store and key uploads use the token's device.
+            if self.config.device_id and self.config.device_id != response.device_id:
+                self.logger.warning(
+                    "Configured device_id %r does not match the token's device "
+                    "%r; using the server's.",
+                    self.config.device_id, response.device_id,
+                )
+            self.user_id = response.user_id
+            self.device_id = response.device_id
+            self.client.user_id = response.user_id
+            self.client.device_id = response.device_id
+            self.logger.info(
+                "Authenticated as %s on device %s",
+                response.user_id, response.device_id,
+            )
+            return
+
+        if not self.config.user_password:
+            raise RuntimeError("No access token or password configured")
+
+        response = await self.client.login(
+            password=self.config.user_password,
+            device_name=self.config.device_name,
+        )
+        if not isinstance(response, LoginResponse):
+            raise RuntimeError(f"Login failed: {response}")
+
+        self.access_token = response.access_token
+        self.client.access_token = response.access_token
+        self.user_id = response.user_id
+        self.logger.info(
+            "Logged in as %s on device %s",
+            response.user_id, response.device_id,
+        )
+
     async def start(self):
         self.logger.info("Initializing client.")
 
@@ -134,6 +190,8 @@ class LainBot:
                 # Re-arm the guard so events replayed during the initial sync
                 # after a reconnect aren't processed as new.
                 self._initial_sync_done = False
+
+                await self._authenticate()
 
                 # Use token to log in
                 self.client.load_store()
