@@ -1,8 +1,23 @@
-matrix-nio[e2e]
-pyyaml
-python-magic
-Pillow
-aiofiles
-apscheduler
-imagehash
-olefile
+# Core Matrix client.
+#
+# The [e2e] extra installs end-to-end encryption support. matrix-nio >= 0.26
+# uses the Rust "vodozemac" library for this -- the old "python-olm" package is
+# NOT used here (it is unmaintained and fails to build on Python 3.14).
+#
+# The import name is `nio`, but the PyPI project is `matrix-nio`.
+# Do NOT `pip install nio` -- that is an unrelated IoT framework that will
+# shadow matrix-nio and crash on import (`from inspect import getargspec`).
+matrix-nio[e2e]>=0.26.0
+
+# Configuration parsing
+PyYAML>=6.0
+
+# File and image handling
+python-magic>=0.4.27   # requires the system libmagic library
+Pillow>=10.0
+aiofiles>=24.1
+
+# Scheduled posting and duplicate-image detection
+APScheduler>=3.10
+ImageHash>=4.3
+olefile>=0.47
