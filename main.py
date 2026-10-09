@@ -29,6 +29,7 @@ from nio import (AsyncClient,
                  DownloadResponse,
                  LoginResponse,
                  WhoamiResponse,
+                 KeysUploadError,
                  ReactionEvent)
 
 from storage import Storage
@@ -134,6 +135,12 @@ class LainBot:
         uploads fail with M_BAD_JSON.
         """
         if self.access_token:
+            if self.config.user_password:
+                self.logger.warning(
+                    "Both user_token and user_password are set; using the "
+                    "access token. Clear user_token to log in with the "
+                    "password and let the bot create its own device."
+                )
             response = await self.client.whoami()
             if not isinstance(response, WhoamiResponse):
                 raise RuntimeError(f"whoami failed: {response}")
@@ -198,7 +205,19 @@ class LainBot:
 
                 # Sync encryption keys with the server
                 if self.client.should_upload_keys:
-                    await self.client.keys_upload()
+                    keys_response = await self.client.keys_upload()
+                    if isinstance(keys_response, KeysUploadError):
+                        self.logger.error(
+                            "E2E key upload failed for device %s: %s",
+                            self.client.device_id, keys_response,
+                        )
+                        if "already exists" in str(keys_response):
+                            self.logger.error(
+                                "The local crypto store is out of sync with "
+                                "the server for this device. Use a dedicated, "
+                                "unused device_id and delete the store "
+                                "directory (see README/config.sample.yaml)."
+                            )
 
                 self.logger.info("Starting sync loop")
                 await self.client.sync_forever(timeout=30000)
